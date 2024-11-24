@@ -1,0 +1,8 @@
+[package]
+name = "naderi_yeganeh_art"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+softbuffer = "0.4.6"
+winit = "0.30.5"
