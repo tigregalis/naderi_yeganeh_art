@@ -40,6 +40,8 @@ struct State {
     threads: Vec<(usize, Sender<MainMessage>, u32)>,
     next_index: usize,
     last_tick: Instant,
+    time_started: Instant,
+    finished: bool,
     drawn: usize,
 }
 
@@ -142,6 +144,8 @@ fn main() {
             threads,
             next_index,
             last_tick: Instant::now(),
+            time_started: Instant::now(),
+            finished: false,
             drawn: 0,
         }
     })
@@ -156,6 +160,8 @@ fn main() {
             threads,
             next_index,
             last_tick,
+            time_started,
+            finished,
             drawn,
         } = state;
 
@@ -190,6 +196,11 @@ fn main() {
                     }
                 }
             }
+        }
+
+        if !*finished && *drawn == image_len {
+            *finished = true;
+            println!("Finished in {elapsed:?}", elapsed = time_started.elapsed());
         }
 
         assert!(*drawn < *next_index);
