@@ -1,6 +1,3 @@
-//! https://x.com/naderi_yeganeh/status/1858455441782534161/photo/1
-//! Sunflower Field by Hamid Naderi Yeganeh
-
 #![feature(fn_traits)]
 #![feature(unboxed_closures)]
 #![feature(tuple_trait)]
