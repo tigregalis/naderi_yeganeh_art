@@ -12,27 +12,22 @@ pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
         F(H(1., (m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
         F(H(2., (m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
     );
-    // println!("draw(m: {m}, n: {n}) = {result:?}");
     result
 }
 
 #[inline(always)]
 pub fn rgb(r: f64, g: f64, b: f64) -> (u8, u8, u8) {
     let result = (r.round() as u8, g.round() as u8, b.round() as u8);
-    // println!("rgb(r: {r}, g: {g}, b: {b}) = {result:?}");
     result
 }
 
-/// Called 3 times per pixel, no point memoising
 pub fn F(x: f64) -> f64 {
     let term0 = 255. * e(-e(-HALF_M * x));
     let term1 = abs(x).powf(e(-e(HALF_M * (x - 1.))));
     let result = term0 * term1;
-    // println!("F(x: {x}) = {result}");
     result
 }
 
-/// Called 3 times per pixel, no point memoising
 pub fn H(v: f64, x: f64, y: f64) -> f64 {
     let term0 = A(v, x, y);
     let term1 = U(60., x, y);
@@ -46,18 +41,15 @@ pub fn H(v: f64, x: f64, y: f64) -> f64 {
     let term24 = e(-e(term240));
     let term2 = term20 + term21num / term21den + term22num / term22den * term23 * term24;
     let result = term0 + term1 * term2;
-    // println!("H(v: {v}, x: {x}, y: {y}) = {result}");
     result
 }
 
-/// Called 3 times per pixel, no point memoising
 pub fn A(v: f64, x: f64, y: f64) -> f64 {
     let result = sum(1, 60, |s| {
         let term0 = U(s - 1., x, y);
         let term1 = W(v, s, x, y);
         term0 * term1
     });
-    // println!("A(v: {v}, x: {x}, y: {y}) = {result}");
     result
 }
 
@@ -71,7 +63,6 @@ memo! {
             let term3 = R(7., u, x, y);
             term0 - term1 * term2 * term3
         });
-        // println!("V(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -117,7 +108,6 @@ memo! {
             * term24
             * term25;
         let result = term0 * term1 + term2;
-        // println!("W(v: {v}, s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -135,7 +125,6 @@ memo! {
         let term10 = 10. * Q(s, x, y);
         let term1 = arccos(cos(term10)).pow2();
         let result = term0 + term1;
-        // println!("K(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -155,7 +144,6 @@ memo! {
         let term2 = 1. - e(-e(term20) - e(term21) - e(term22));
         let term3 = 1. - N(s, x, y);
         let result = term0 - term1 * term2 * term3;
-        // println!("C(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -168,7 +156,6 @@ memo! {
         let term0den0 = arccos(cos(term0den00));
         let term0den = 1. + HALF_M * abs(term0den0);
         let result = arctan(term0num / term0den);
-        // println!("L(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -184,7 +171,6 @@ memo! {
         let term22 = 4. * cos(5. * s);
         let term2 = x + term20 * term21 + term22;
         let result = term0num / term0den * term1num / term1den * term2;
-        // println!("Q(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -201,12 +187,10 @@ memo! {
         let term13 = cos(term130) / 20.;
         let term1 = y + term10 - term11 + term12 + term13;
         let result = term0num / term0den * term1;
-        // println!("P(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
 
-/// Called 3 times per pixel, no point memoising
 pub fn B(v: f64, x: f64, y: f64) -> f64 {
     let result = sum(1, 20, |s| {
         let term0 = V(s - 1., x, y);
@@ -225,7 +209,6 @@ pub fn B(v: f64, x: f64, y: f64) -> f64 {
             term30num / term30den - term31 + y + term32num / term32den + term33num / term33den;
         term0 * term1 * term2num / term2den * term3
     });
-    // println!("B(v: {v}, x: {x}, y: {y}) = {result}");
     result
 }
 
@@ -237,7 +220,6 @@ memo! {
             let term2 = 1. - C(u, x, y);
             term0 * term1 * term2
         });
-        // println!("U(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -249,7 +231,6 @@ memo! {
             let term1 = T(s, x, y);
             term0 * term1
         });
-        // println!("E(x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -267,7 +248,6 @@ memo! {
         let term03 = 3. * E(x, y) / 10.;
         let term0 = term00.pow2() + 20. * term01.pow2() - 2. + term02 + term03;
         let result = e(-e(v * term0));
-        // println!("R(v: {v}, s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
@@ -296,43 +276,41 @@ memo! {
             term530 * term531 + term532num / term532den + term533 * term534 + term535 + term536;
         let term5 = term50 - term51 + term52 * cos2(term53);
         let result = e(-e(term0 * term1) - e(term2 * term3) - e(term4 * term5));
-        // println!("J(v: {v}, s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
 
-// memo! {
-pub fn N(s: f64, x: f64, y: f64) -> f64 {
-    let term00 = -400.;
-    let term010 = 20. * P(s, x, y);
-    let term011num0 = 30. * x + 24. * y + 7. * s;
-    let term011num = cos(term011num0);
-    let term011den = 2.;
-    let term012 = 2.;
-    let term0130 = 10. * Q(s, x, y);
-    let term013 = arccos(cos(term0130));
-    let term01 = term010 + term011num / term011den - term012 * term013;
-    let term02 = 160.;
-    let term03 = 40. * E(x, y);
-    let term040 = 10. * Q(s, x, y);
-    let term04 = arccos(cos(term040));
-    let term050 = arccos(cos(10. * Q(s, x, y)));
-    let term05 = 1. - FRAC_1_PI * term050;
-    let term0 = term00 * cos(term01) - term02 - term03 + HALF_N * term04 + HALF_N * term05.pow10();
-    let term10 = 200.;
-    let term110 = P(s, x, y);
-    let term111 = 1. / 10.;
-    let term1120 = 10. * Q(s, x, y);
-    let term112 = arccos(cos(term1120));
-    let term113 = 2. / 5.;
-    let term11 = abs(term110 - term111 * term112 + term113);
-    let term12 = 40.;
-    let term1 = term10 * term11 - term12;
-    let result = e(-e(term0) - e(term1));
-    // println!("N(s: {s}, x: {x}, y: {y}) = {result}");
-    result
+memo! {
+    pub fn N(s: f64, x: f64, y: f64) -> f64 {
+        let term00 = -400.;
+        let term010 = 20. * P(s, x, y);
+        let term011num0 = 30. * x + 24. * y + 7. * s;
+        let term011num = cos(term011num0);
+        let term011den = 2.;
+        let term012 = 2.;
+        let term0130 = 10. * Q(s, x, y);
+        let term013 = arccos(cos(term0130));
+        let term01 = term010 + term011num / term011den - term012 * term013;
+        let term02 = 160.;
+        let term03 = 40. * E(x, y);
+        let term040 = 10. * Q(s, x, y);
+        let term04 = arccos(cos(term040));
+        let term050 = arccos(cos(10. * Q(s, x, y)));
+        let term05 = 1. - FRAC_1_PI * term050;
+        let term0 = term00 * cos(term01) - term02 - term03 + HALF_N * term04 + HALF_N * term05.pow10();
+        let term10 = 200.;
+        let term110 = P(s, x, y);
+        let term111 = 1. / 10.;
+        let term1120 = 10. * Q(s, x, y);
+        let term112 = arccos(cos(term1120));
+        let term113 = 2. / 5.;
+        let term11 = abs(term110 - term111 * term112 + term113);
+        let term12 = 40.;
+        let term1 = term10 * term11 - term12;
+        let result = e(-e(term0) - e(term1));
+        result
+    }
 }
-// }
 
 memo! {
     pub fn T(s: f64, x: f64, y: f64) -> f64 {
@@ -365,7 +343,6 @@ memo! {
         let term15 = 2. * cos(7. * s);
         let term1 = cos(term10 * term11 * term12 + term13 * term14 + term15);
         let result = term0 * term1;
-        // println!("T(s: {s}, x: {x}, y: {y}) = {result}");
         result
     }
 }
