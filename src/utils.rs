@@ -179,7 +179,7 @@ pub fn product_with_key(
             })
             .or_insert_with(|| range(0, end).map(|s| expression(s, x, y)).collect());
 
-        v[start..end].iter().product::<f64>()
+        v[start..=end].iter().product::<f64>()
     });
     product
 }
