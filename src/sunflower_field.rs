@@ -113,8 +113,9 @@ pub fn A2(x: f64, y: f64) -> f64 {
 }
 
 memo! {
+    /// V(s,x,y) called with s = 1..=20
     pub fn V(s: f64, x: f64, y: f64) -> f64 {
-        let result = product(0, s, |u| {
+        let result = product_with_key("V", 0, s, x, y, |u, x, y| {
             let term0 = 1.;
             let term1 = 9. / 10.;
             let term20 = -100. * (u - 1. / 2.);
@@ -127,7 +128,7 @@ memo! {
 }
 
 memo! {
-    /// W(v,s,x,y) called with v = [0, 1, 2]
+    /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W0(s: f64, x: f64, y: f64) -> f64 {
         let v = 0.;
         let term00 = J0(s, x, y);
@@ -174,7 +175,7 @@ memo! {
 }
 
 memo! {
-    /// W(v,s,x,y) called with v = [0, 1, 2]
+    /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W1(s: f64, x: f64, y: f64) -> f64 {
         let v = 1.;
         let term00 = J0(s, x, y);
@@ -221,7 +222,7 @@ memo! {
 }
 
 memo! {
-    /// W(v,s,x,y) called with v = [0, 1, 2]
+    /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W2(s: f64, x: f64, y: f64) -> f64 {
         let v = 2.;
         let term00 = J0(s, x, y);
@@ -285,6 +286,7 @@ memo! {
 }
 
 memo! {
+    /// C(s,x,y) called with s = 0..=60
     pub fn C(s: f64, x: f64, y: f64) -> f64 {
         let term00 = -100.;
         let term01 = s - 1. / 2.;
@@ -416,8 +418,9 @@ pub fn B2(x: f64, y: f64) -> f64 {
 }
 
 memo! {
+    /// U(s,x,y) called with s = 0..=60
     pub fn U(s: f64, x: f64, y: f64) -> f64 {
-        let result = product(0, s, |u| {
+        let result = product_with_key("U", 0, s, x, y, |u, x, y| {
             let term0 = 1. - J0(u, x, y);
             let term1 = 1. - J3(u, x, y);
             let term2 = 1. - C(u, x, y);

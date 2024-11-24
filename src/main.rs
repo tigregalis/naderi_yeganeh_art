@@ -170,7 +170,7 @@ fn main() {
                     }
                 }
                 WorkerMessage::Idle { thread_id: thread } => {
-                    const LENGTH: usize = 128;
+                    const LENGTH: usize = 512;
                     let (thread_original, tx, placeholder_color) = &threads[thread];
                     assert_eq!(*thread_original, thread);
 

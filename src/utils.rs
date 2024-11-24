@@ -1,3 +1,5 @@
+use std::{cell::Cell, collections::HashMap, thread::LocalKey};
+
 /// Computes e^n
 #[inline(always)]
 pub fn e(n: f64) -> f64 {
@@ -100,8 +102,86 @@ pub fn range(start: impl IntoUsize, end: impl IntoUsize) -> impl Iterator<Item =
 }
 
 #[inline(always)]
+pub fn sum_with_key(
+    key: &'static str,
+    start: impl IntoUsize,
+    end: impl IntoUsize,
+    x: f64,
+    y: f64,
+    expression: impl Fn(f64, f64, f64) -> f64,
+) -> f64 {
+    thread_local! {
+        static ARGS: Cell<Option<(f64, f64)>> = Default::default();
+        static MAP: Cell<HashMap<&'static str, Vec<f64>>> = Default::default();
+    }
+    let start = start.into_usize();
+    let end = end.into_usize();
+    // TODO:
+    // fetch or create cached value, invalidating if x and y are different
+    // invalidate cache if x and y are different
+    with_local_cell(&ARGS, |args| {
+        if *args != Some((x, y)) {
+            *args = Some((x, y));
+            with_local_cell(&MAP, |map| map.clear());
+        }
+    });
+    // fetch or compute
+    let sum = with_local_cell(&MAP, move |map| {
+        let v = map
+            .entry(key)
+            .and_modify(|v| {
+                for s in v.len()..=end {
+                    v.push(expression(s as f64, x, y));
+                }
+            })
+            .or_insert_with(|| range(0, end).map(|s| expression(s, x, y)).collect());
+
+        v[start..end].iter().sum::<f64>()
+    });
+    sum
+}
+
+#[inline(always)]
 pub fn sum(start: impl IntoUsize, end: impl IntoUsize, expression: impl Fn(f64) -> f64) -> f64 {
     range(start, end).map(expression).sum::<f64>()
+}
+
+#[inline(always)]
+pub fn product_with_key(
+    key: &'static str,
+    start: impl IntoUsize,
+    end: impl IntoUsize,
+    x: f64,
+    y: f64,
+    expression: impl Fn(f64, f64, f64) -> f64,
+) -> f64 {
+    thread_local! {
+        static ARGS: Cell<Option<(f64, f64)>> = Default::default();
+        static MAP: Cell<HashMap<&'static str, Vec<f64>>> = Default::default();
+    }
+    let start = start.into_usize();
+    let end = end.into_usize();
+    // invalidate cache if x and y are different
+    with_local_cell(&ARGS, |args| {
+        if *args != Some((x, y)) {
+            *args = Some((x, y));
+            with_local_cell(&MAP, |map| map.clear());
+        }
+    });
+    // fetch or compute
+    let product = with_local_cell(&MAP, move |map| {
+        let v = map
+            .entry(key)
+            .and_modify(|v| {
+                for s in v.len()..=end {
+                    v.push(expression(s as f64, x, y));
+                }
+            })
+            .or_insert_with(|| range(0, end).map(|s| expression(s, x, y)).collect());
+
+        v[start..end].iter().product::<f64>()
+    });
+    product
 }
 
 #[inline(always)]
@@ -120,4 +200,14 @@ pub fn xy_from_index(width: usize, index: usize) -> (usize, usize) {
     let x = index % width;
     let y = index / width;
     (x, y)
+}
+
+fn with_local_cell<T: Default, O>(
+    cell: &'static LocalKey<Cell<T>>,
+    f: impl FnOnce(&mut T) -> O,
+) -> O {
+    let mut value = cell.take();
+    let output = f(&mut value);
+    cell.set(value);
+    output
 }
