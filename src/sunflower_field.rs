@@ -28,6 +28,7 @@ pub fn F(x: f64) -> f64 {
     result
 }
 
+/// Called with v = [0, 1, 2]
 pub fn H(v: f64, x: f64, y: f64) -> f64 {
     let term0 = A(v, x, y);
     let term1 = U(60., x, y);
@@ -44,6 +45,7 @@ pub fn H(v: f64, x: f64, y: f64) -> f64 {
     result
 }
 
+/// Called with v = [0, 1, 2]
 pub fn A(v: f64, x: f64, y: f64) -> f64 {
     let result = sum(1, 60, |s| {
         let term0 = U(s - 1., x, y);
@@ -68,6 +70,7 @@ memo! {
 }
 
 memo! {
+    /// Called with v = [0, 1, 2]
     pub fn W(v: f64, s: f64, x: f64, y: f64) -> f64 {
         let term00 = J(0., s, x, y);
         let term01 = 1. - J(3., s, x, y);
@@ -191,6 +194,7 @@ memo! {
     }
 }
 
+/// Called with v = [0, 1, 2]
 pub fn B(v: f64, x: f64, y: f64) -> f64 {
     let result = sum(1, 20, |s| {
         let term0 = V(s - 1., x, y);
@@ -236,6 +240,7 @@ memo! {
 }
 
 memo! {
+    /// Called with v = [3, 7]
     pub fn R(v: f64, s: f64, x: f64, y: f64) -> f64 {
         let term00 = x + cos(5. * s);
         let term010 = s / 40.;
@@ -253,6 +258,7 @@ memo! {
 }
 
 memo! {
+    /// Called with J = [0, 3]
     pub fn J(v: f64, s: f64, x: f64, y: f64) -> f64 {
         let term0 = -100.;
         let term1 = s - 1. / 2.;
