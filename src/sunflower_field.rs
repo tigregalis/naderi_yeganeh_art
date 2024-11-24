@@ -8,9 +8,9 @@ use std::f64::consts::{FRAC_1_PI, PI};
 #[inline(always)]
 pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
     let result = rgb(
-        F(H(0., (m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
-        F(H(1., (m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
-        F(H(2., (m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
+        F(H0((m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
+        F(H1((m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
+        F(H2((m - HALF_M) / HALF_N, (HALF_N_PLUS_ONE - n) / HALF_N)),
     );
     result
 }
@@ -28,11 +28,12 @@ pub fn F(x: f64) -> f64 {
     result
 }
 
-/// Called with v = [0, 1, 2]
-pub fn H(v: f64, x: f64, y: f64) -> f64 {
-    let term0 = A(v, x, y);
+/// H(v,x,y) called with v = [0, 1, 2]
+pub fn H0(x: f64, y: f64) -> f64 {
+    let v = 0.;
+    let term0 = A0(x, y);
     let term1 = U(60., x, y);
-    let term20 = B(v, x, y);
+    let term20 = B0(x, y);
     let term21num = 2. - v;
     let term21den = 40.;
     let term22num = 3. * v.pow2() - 3. * v + 14.;
@@ -45,11 +46,67 @@ pub fn H(v: f64, x: f64, y: f64) -> f64 {
     result
 }
 
-/// Called with v = [0, 1, 2]
-pub fn A(v: f64, x: f64, y: f64) -> f64 {
+/// H(v,x,y) called with v = [0, 1, 2]
+pub fn H1(x: f64, y: f64) -> f64 {
+    let v = 1.;
+    let term0 = A1(x, y);
+    let term1 = U(60., x, y);
+    let term20 = B1(x, y);
+    let term21num = 2. - v;
+    let term21den = 40.;
+    let term22num = 3. * v.pow2() - 3. * v + 14.;
+    let term22den = 20.;
+    let term23 = V(20., x, y);
+    let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
+    let term24 = e(-e(term240));
+    let term2 = term20 + term21num / term21den + term22num / term22den * term23 * term24;
+    let result = term0 + term1 * term2;
+    result
+}
+
+/// H(v,x,y) called with v = [0, 1, 2]
+pub fn H2(x: f64, y: f64) -> f64 {
+    let v = 2.;
+    let term0 = A2(x, y);
+    let term1 = U(60., x, y);
+    let term20 = B2(x, y);
+    let term21num = 2. - v;
+    let term21den = 40.;
+    let term22num = 3. * v.pow2() - 3. * v + 14.;
+    let term22den = 20.;
+    let term23 = V(20., x, y);
+    let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
+    let term24 = e(-e(term240));
+    let term2 = term20 + term21num / term21den + term22num / term22den * term23 * term24;
+    let result = term0 + term1 * term2;
+    result
+}
+
+/// A(v,x,y) called with v = [0, 1, 2]
+pub fn A0(x: f64, y: f64) -> f64 {
     let result = sum(1, 60, |s| {
         let term0 = U(s - 1., x, y);
-        let term1 = W(v, s, x, y);
+        let term1 = W0(s, x, y);
+        term0 * term1
+    });
+    result
+}
+
+/// A(v,x,y) called with v = [0, 1, 2]
+pub fn A1(x: f64, y: f64) -> f64 {
+    let result = sum(1, 60, |s| {
+        let term0 = U(s - 1., x, y);
+        let term1 = W1(s, x, y);
+        term0 * term1
+    });
+    result
+}
+
+/// A(v,x,y) called with v = [0, 1, 2]
+pub fn A2(x: f64, y: f64) -> f64 {
+    let result = sum(1, 60, |s| {
+        let term0 = U(s - 1., x, y);
+        let term1 = W2(s, x, y);
         term0 * term1
     });
     result
@@ -62,7 +119,7 @@ memo! {
             let term1 = 9. / 10.;
             let term20 = -100. * (u - 1. / 2.);
             let term2 = e(-e(term20));
-            let term3 = R(7., u, x, y);
+            let term3 = R7( u, x, y);
             term0 - term1 * term2 * term3
         });
         result
@@ -70,17 +127,18 @@ memo! {
 }
 
 memo! {
-    /// Called with v = [0, 1, 2]
-    pub fn W(v: f64, s: f64, x: f64, y: f64) -> f64 {
-        let term00 = J(0., s, x, y);
-        let term01 = 1. - J(3., s, x, y);
+    /// W(v,s,x,y) called with v = [0, 1, 2]
+    pub fn W0(s: f64, x: f64, y: f64) -> f64 {
+        let v = 0.;
+        let term00 = J0(s, x, y);
+        let term01 = 1. - J3(s, x, y);
         let term02num = 19. - 9. * v;
         let term02den = 20.;
         let term03num0 = 5. + 6. * v - 2. * v.pow2();
         let term03num1 = K(s, x, y);
         let term03num = 12. + term03num0 * term03num1;
         let term03den = 20.;
-        let term04 = J(3., s, x, y);
+        let term04 = J3(s, x, y);
         let term05 = 21. / 20. - 53. * v / 100.;
         let term06num0 = 6. + 6. * v - 2. * v.pow2();
         let term06num1 = K(s, x, y);
@@ -103,8 +161,102 @@ memo! {
         let term21den = 4.;
         let term22num = 5. + E(x, y);
         let term22den = 5.;
-        let term23 = 1. - J(0., s, x, y);
-        let term24 = 1. - J(3., s, x, y);
+        let term23 = 1. - J0(s, x, y);
+        let term24 = 1. - J3(s, x, y);
+        let term25 = C(s, x, y);
+        let term2 = term20num / term20den * term21num / term21den * term22num / term22den
+            * term23
+            * term24
+            * term25;
+        let result = term0 * term1 + term2;
+        result
+    }
+}
+
+memo! {
+    /// W(v,s,x,y) called with v = [0, 1, 2]
+    pub fn W1(s: f64, x: f64, y: f64) -> f64 {
+        let v = 1.;
+        let term00 = J0(s, x, y);
+        let term01 = 1. - J3(s, x, y);
+        let term02num = 19. - 9. * v;
+        let term02den = 20.;
+        let term03num0 = 5. + 6. * v - 2. * v.pow2();
+        let term03num1 = K(s, x, y);
+        let term03num = 12. + term03num0 * term03num1;
+        let term03den = 20.;
+        let term04 = J3(s, x, y);
+        let term05 = 21. / 20. - 53. * v / 100.;
+        let term06num0 = 6. + 6. * v - 2. * v.pow2();
+        let term06num1 = K(s, x, y);
+        let term06num = 13. + term06num0 * term06num1;
+        let term06den = 20.;
+        let term0 = term00 * term01 * term02num / term02den * term03num / term03den
+            + term04 * term05 * term06num / term06den;
+        let term10num = 2. - v;
+        let term10den = 10.;
+        let term11 = 7. / 10.;
+        let term120 = K(s, x, y) - 37. / 100. + E(x, y) / 40.;
+        let term12 = e(-e(-40. * term120));
+        let term13 = 3. / 10.;
+        let term140 = 3. - 20. * K(s, x, y);
+        let term14 = e(-e(term140));
+        let term1 = term10num / term10den + term11 * term12 + term13 * term14;
+        let term20num = 14. - 7. * (v - 1.).pow2();
+        let term20den = 100.;
+        let term21num = 5. + 4. * P(s, x, y);
+        let term21den = 4.;
+        let term22num = 5. + E(x, y);
+        let term22den = 5.;
+        let term23 = 1. - J0(s, x, y);
+        let term24 = 1. - J3(s, x, y);
+        let term25 = C(s, x, y);
+        let term2 = term20num / term20den * term21num / term21den * term22num / term22den
+            * term23
+            * term24
+            * term25;
+        let result = term0 * term1 + term2;
+        result
+    }
+}
+
+memo! {
+    /// W(v,s,x,y) called with v = [0, 1, 2]
+    pub fn W2(s: f64, x: f64, y: f64) -> f64 {
+        let v = 2.;
+        let term00 = J0(s, x, y);
+        let term01 = 1. - J3(s, x, y);
+        let term02num = 19. - 9. * v;
+        let term02den = 20.;
+        let term03num0 = 5. + 6. * v - 2. * v.pow2();
+        let term03num1 = K(s, x, y);
+        let term03num = 12. + term03num0 * term03num1;
+        let term03den = 20.;
+        let term04 = J3(s, x, y);
+        let term05 = 21. / 20. - 53. * v / 100.;
+        let term06num0 = 6. + 6. * v - 2. * v.pow2();
+        let term06num1 = K(s, x, y);
+        let term06num = 13. + term06num0 * term06num1;
+        let term06den = 20.;
+        let term0 = term00 * term01 * term02num / term02den * term03num / term03den
+            + term04 * term05 * term06num / term06den;
+        let term10num = 2. - v;
+        let term10den = 10.;
+        let term11 = 7. / 10.;
+        let term120 = K(s, x, y) - 37. / 100. + E(x, y) / 40.;
+        let term12 = e(-e(-40. * term120));
+        let term13 = 3. / 10.;
+        let term140 = 3. - 20. * K(s, x, y);
+        let term14 = e(-e(term140));
+        let term1 = term10num / term10den + term11 * term12 + term13 * term14;
+        let term20num = 14. - 7. * (v - 1.).pow2();
+        let term20den = 100.;
+        let term21num = 5. + 4. * P(s, x, y);
+        let term21den = 4.;
+        let term22num = 5. + E(x, y);
+        let term22den = 5.;
+        let term23 = 1. - J0(s, x, y);
+        let term24 = 1. - J3(s, x, y);
         let term25 = C(s, x, y);
         let term2 = term20num / term20den * term21num / term21den * term22num / term22den
             * term23
@@ -194,12 +346,59 @@ memo! {
     }
 }
 
-/// Called with v = [0, 1, 2]
-pub fn B(v: f64, x: f64, y: f64) -> f64 {
+/// B(v,x,y) called with v = [0, 1, 2]
+pub fn B0(x: f64, y: f64) -> f64 {
+    let v = 0.;
     let result = sum(1, 20, |s| {
         let term0 = V(s - 1., x, y);
-        let term1 = R(7., s, x, y);
-        let term2num0 = R(3., s, x, y);
+        let term1 = R7(s, x, y);
+        let term2num0 = R3(s, x, y);
+        let term2num = 15. - 7. * term2num0;
+        let term2den = 10.;
+        let term30num = cos(4. * s + v * s) + s;
+        let term30den = 40.;
+        let term31 = v / 5.;
+        let term32num = cos(5. * x + 3. * y + 3. * s);
+        let term32den = 10.;
+        let term33num = cos(8. * s);
+        let term33den = 5.;
+        let term3 =
+            term30num / term30den - term31 + y + term32num / term32den + term33num / term33den;
+        term0 * term1 * term2num / term2den * term3
+    });
+    result
+}
+
+/// B(v,x,y) called with v = [0, 1, 2]
+pub fn B1(x: f64, y: f64) -> f64 {
+    let v = 1.;
+    let result = sum(1, 20, |s| {
+        let term0 = V(s - 1., x, y);
+        let term1 = R7(s, x, y);
+        let term2num0 = R3(s, x, y);
+        let term2num = 15. - 7. * term2num0;
+        let term2den = 10.;
+        let term30num = cos(4. * s + v * s) + s;
+        let term30den = 40.;
+        let term31 = v / 5.;
+        let term32num = cos(5. * x + 3. * y + 3. * s);
+        let term32den = 10.;
+        let term33num = cos(8. * s);
+        let term33den = 5.;
+        let term3 =
+            term30num / term30den - term31 + y + term32num / term32den + term33num / term33den;
+        term0 * term1 * term2num / term2den * term3
+    });
+    result
+}
+
+/// B(v,x,y) called with v = [0, 1, 2]
+pub fn B2(x: f64, y: f64) -> f64 {
+    let v = 2.;
+    let result = sum(1, 20, |s| {
+        let term0 = V(s - 1., x, y);
+        let term1 = R7(s, x, y);
+        let term2num0 = R3(s, x, y);
         let term2num = 15. - 7. * term2num0;
         let term2den = 10.;
         let term30num = cos(4. * s + v * s) + s;
@@ -219,8 +418,8 @@ pub fn B(v: f64, x: f64, y: f64) -> f64 {
 memo! {
     pub fn U(s: f64, x: f64, y: f64) -> f64 {
         let result = product(0, s, |u| {
-            let term0 = 1. - J(0., u, x, y);
-            let term1 = 1. - J(3., u, x, y);
+            let term0 = 1. - J0(u, x, y);
+            let term1 = 1. - J3(u, x, y);
             let term2 = 1. - C(u, x, y);
             term0 * term1 * term2
         });
@@ -240,8 +439,9 @@ memo! {
 }
 
 memo! {
-    /// Called with v = [3, 7]
-    pub fn R(v: f64, s: f64, x: f64, y: f64) -> f64 {
+    /// R(v,s,x,y) called with v = [3, 7]
+    pub fn R3(s: f64, x: f64, y: f64) -> f64 {
+        let v = 3.;
         let term00 = x + cos(5. * s);
         let term010 = s / 40.;
         let term011num = cos(5. * x + 3. * y + 3. * s);
@@ -258,8 +458,58 @@ memo! {
 }
 
 memo! {
-    /// Called with J = [0, 3]
-    pub fn J(v: f64, s: f64, x: f64, y: f64) -> f64 {
+    /// R(v,s,x,y) called with v = [3, 7]
+    pub fn R7(s: f64, x: f64, y: f64) -> f64 {
+        let v = 7.;
+        let term00 = x + cos(5. * s);
+        let term010 = s / 40.;
+        let term011num = cos(5. * x + 3. * y + 3. * s);
+        let term011den = 10.;
+        let term012num = cos(8. * s);
+        let term012den = 5.;
+        let term01 = y - 1. + term010 + term011num / term011den + term012num / term012den;
+        let term02 = cos(6. * s) / 5.;
+        let term03 = 3. * E(x, y) / 10.;
+        let term0 = term00.pow2() + 20. * term01.pow2() - 2. + term02 + term03;
+        let result = e(-e(v * term0));
+        result
+    }
+}
+
+memo! {
+    /// J(v,s,x,y) called with J = [0, 3]
+    pub fn J0(s: f64, x: f64, y: f64) -> f64 {
+        let v = 0.;
+        let term0 = -100.;
+        let term1 = s - 1. / 2.;
+        let term2 = 50.;
+        let term3 = abs(10. * P(s, x, y)) - PI;
+        let term4 = 90.;
+        let term50 = K(s, x, y);
+        let term51 = 8. / 5.;
+        let term52 = 5. / 4.;
+        let term530 = 8. + v / 2.;
+        let term531 = L(s, x, y);
+        let term532num0 = 5. * K(s, x, y) + 6. * s;
+        let term532num = 9. * cos(term532num0);
+        let term532den = 50.;
+        let term533 = K(s, x, y) / 2.;
+        let term5340 = 3. * L(s, x, y) + 4. * s;
+        let term534 = cos(term5340);
+        let term535 = 4. * s;
+        let term536 = 5. * v / 3.;
+        let term53 =
+            term530 * term531 + term532num / term532den + term533 * term534 + term535 + term536;
+        let term5 = term50 - term51 + term52 * cos2(term53);
+        let result = e(-e(term0 * term1) - e(term2 * term3) - e(term4 * term5));
+        result
+    }
+}
+
+memo! {
+    /// J(v,s,x,y) called with J = [0, 3]
+    pub fn J3(s: f64, x: f64, y: f64) -> f64 {
+        let v = 3.;
         let term0 = -100.;
         let term1 = s - 1. / 2.;
         let term2 = 50.;
