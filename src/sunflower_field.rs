@@ -14,6 +14,18 @@ const HALF_M: f64 = (FULL_M / 2) as f64;
 const HALF_N: f64 = (FULL_N / 2) as f64;
 const HALF_N_PLUS_ONE: f64 = HALF_N + 1.;
 
+pub struct Artwork;
+
+impl Art for Artwork {
+    const FULL_M: usize = FULL_M;
+
+    const FULL_N: usize = FULL_N;
+
+    fn draw(m: f64, n: f64) -> (u8, u8, u8) {
+        draw(m, n)
+    }
+}
+
 #[inline(always)]
 pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
     let result = rgb(

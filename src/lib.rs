@@ -15,3 +15,9 @@ pub use utils::*;
 
 pub mod winit_app;
 pub use winit_app::*;
+
+pub trait Art {
+    const FULL_M: usize;
+    const FULL_N: usize;
+    fn draw(m: f64, n: f64) -> (u8, u8, u8);
+}

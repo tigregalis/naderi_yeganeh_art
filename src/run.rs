@@ -5,7 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{utils::*, winit_app};
+use crate::{utils::*, winit_app, Art};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use softbuffer::Surface;
 use winit::{
@@ -49,25 +49,25 @@ struct PixelReady {
     pixels: [u32; BATCH_SIZE],
 }
 
-pub fn run<const FULL_M: usize, const FULL_N: usize>(draw: fn(f64, f64) -> (u8, u8, u8)) {
+pub fn run<Artwork: Art>() {
     let event_loop = EventLoop::new().unwrap();
 
     let app = winit_app::WinitAppBuilder::with_init(move |elwt| {
-        let image = vec![u32::MAX; FULL_M * FULL_N];
+        let image = vec![u32::MAX; Artwork::FULL_M * Artwork::FULL_N];
 
         let (tx, rx) = mpsc::channel();
 
         rayon::spawn(move || {
-            (0..((FULL_M * FULL_N).div_ceil(BATCH_SIZE)))
+            (0..((Artwork::FULL_M * Artwork::FULL_N).div_ceil(BATCH_SIZE)))
                 .into_par_iter()
                 .for_each_with(tx, |tx, counter| {
                     let mut pixels = [u32::MAX; BATCH_SIZE];
                     let index = counter * BATCH_SIZE;
                     for (offset, pixel) in pixels.iter_mut().enumerate() {
-                        let (x, y) = xy_from_index(FULL_M, index + offset);
+                        let (x, y) = xy_from_index(Artwork::FULL_M, index + offset);
                         let m = (x + 1) as f64;
                         let n = (y + 1) as f64;
-                        let rgb = draw(m, n);
+                        let rgb = Artwork::draw(m, n);
                         *pixel = softbuffer_color(rgb);
                     }
 
@@ -169,11 +169,11 @@ pub fn run<const FULL_M: usize, const FULL_N: usize>(draw: fn(f64, f64) -> (u8, 
                     let mut surface_buffer = surface.buffer_mut().unwrap();
 
                     if width > 0 && height > 0 {
-                        let target_width = width.min(FULL_M);
-                        let target_height = height.min(FULL_N);
+                        let target_width = width.min(Artwork::FULL_M);
+                        let target_height = height.min(Artwork::FULL_N);
                         let src_buffer = image.as_mut_slice();
                         let src_lines = src_buffer
-                            .chunks(FULL_M)
+                            .chunks(Artwork::FULL_M)
                             .map(|line| &line[0..target_width])
                             .take(target_height);
                         let dest_buffer = surface_buffer.as_mut();
