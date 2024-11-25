@@ -11,7 +11,6 @@ use std::{
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use softbuffer::Surface;
-use sunflower_field::*;
 use utils::*;
 use winit::{
     event::{Event, KeyEvent, WindowEvent},
@@ -64,6 +63,10 @@ struct PixelReady {
 }
 
 fn main() {
+    run(sunflower_field::draw)
+}
+
+fn run(draw: fn(f64, f64) -> (u8, u8, u8)) {
     let event_loop = EventLoop::new().unwrap();
 
     let app = winit_app::WinitAppBuilder::with_init(move |elwt| {
