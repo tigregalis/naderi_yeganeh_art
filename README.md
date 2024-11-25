@@ -20,7 +20,7 @@ Workings are PNG images with the [Excalidraw](https://excalidraw.com) scene embe
 ## `v` or the colour component
 
 `v` appears to be used, in many of the formulas (starting with `H(v, x, y)`), as a way to select a value for a colour, and is `0` for _red_, `1` for _green_, and `2` for _blue_.
-So we need to find an equation such that `f(0) = r`, `f(1) = g`, `f(2) = b`
+So we need to find an equation such that `f(0) = r`, `f(1) = g`, `f(2) = b`.
 A parabola is one equation with this behaviour.
 We have the generalised formula for a parabola `f(v) = mv^2 + nv + o`.
 

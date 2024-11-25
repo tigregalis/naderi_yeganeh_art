@@ -55,10 +55,12 @@ impl Pane {
     }
 }
 
+const BATCH_SIZE: usize = 32;
+
 #[derive(Debug)]
 struct PixelReady {
     index: usize,
-    pixel: u32,
+    pixels: [u32; BATCH_SIZE],
 }
 
 fn main() {
@@ -70,15 +72,20 @@ fn main() {
         let (tx, rx) = mpsc::channel();
 
         rayon::spawn(move || {
-            (0..(FULL_M * FULL_N))
+            (0..((FULL_M * FULL_N).div_ceil(BATCH_SIZE)))
                 .into_par_iter()
-                .for_each_with(tx, |tx, index| {
-                    let (x, y) = xy_from_index(FULL_M, index);
-                    let m = (x + 1) as f64;
-                    let n = (y + 1) as f64;
-                    let rgb = draw(m, n);
-                    let pixel = softbuffer_color(rgb);
-                    if tx.send(PixelReady { index, pixel }).is_err() {
+                .for_each_with(tx, |tx, counter| {
+                    let mut pixels = [u32::MAX; BATCH_SIZE];
+                    let index = counter * BATCH_SIZE;
+                    for (offset, pixel) in pixels.iter_mut().enumerate() {
+                        let (x, y) = xy_from_index(FULL_M, index + offset);
+                        let m = (x + 1) as f64;
+                        let n = (y + 1) as f64;
+                        let rgb = draw(m, n);
+                        *pixel = softbuffer_color(rgb);
+                    }
+
+                    if tx.send(PixelReady { index, pixels }).is_err() {
                         eprintln!("loop no longer exists");
                     }
                 });
@@ -111,14 +118,13 @@ fn main() {
 
         let image_len = image.len();
 
-        while let Ok(PixelReady { index, pixel }) = rx.try_recv() {
-            if let Some(target) = image.get_mut(index) {
-                *target = pixel;
-                *drawn += 1;
-            }
+        while let Ok(PixelReady { index, pixels }) = rx.try_recv() {
+            let len = (index + BATCH_SIZE).min(image_len) - index;
+            image[index..(index + len)].copy_from_slice(&pixels);
+            *drawn += len;
         }
 
-        if !*finished && *drawn == image_len {
+        if !*finished && *drawn >= image_len {
             *finished = true;
             println!("Finished in {elapsed:?}", elapsed = time_started.elapsed());
         }
