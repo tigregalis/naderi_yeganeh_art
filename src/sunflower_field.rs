@@ -34,12 +34,12 @@ pub fn F(x: f64) -> f64 {
 /// H(v,x,y) called with v = [0, 1, 2]
 pub fn H0(x: f64, y: f64) -> f64 {
     let v = 0.;
-    let term0 = A0(x, y);
-    let term1 = U(60., x, y);
-    let term20 = B0(x, y);
-    let term21num = 2. - v;
+    let term0 = A0(x, y); // A is the flower field
+    let term1 = U(60., x, y); // U is the sky/cloud z-depth
+    let term20 = B0(x, y); // B is the clouds
+    let term21num = 2. - v; // sky/cloud tint hue: (2 - 0)/40 = 2/40 red
     let term21den = 40.;
-    let term22num = 3. * v.pow2() - 3. * v + 14.;
+    let term22num = 3. * v.pow2() - 3. * v + 14.; // sky hue: (3*0 - 3*0 + 14)/20 = 14/20 = 70% red
     let term22den = 20.;
     let term23 = V(20., x, y);
     let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
@@ -52,12 +52,12 @@ pub fn H0(x: f64, y: f64) -> f64 {
 /// H(v,x,y) called with v = [0, 1, 2]
 pub fn H1(x: f64, y: f64) -> f64 {
     let v = 1.;
-    let term0 = A1(x, y);
-    let term1 = U(60., x, y);
-    let term20 = B1(x, y);
-    let term21num = 2. - v;
+    let term0 = A1(x, y); // A is the flower field
+    let term1 = U(60., x, y); // U is the sky/cloud z-depth
+    let term20 = B1(x, y); // B is the clouds
+    let term21num = 2. - v; // sky/cloud tint hue: (2 - 1)/40 = 1/40 green
     let term21den = 40.;
-    let term22num = 3. * v.pow2() - 3. * v + 14.;
+    let term22num = 3. * v.pow2() - 3. * v + 14.; // sky hue: (3*1 - 3*1 + 14)/20 = 14/20 = 70% green
     let term22den = 20.;
     let term23 = V(20., x, y);
     let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
@@ -70,12 +70,12 @@ pub fn H1(x: f64, y: f64) -> f64 {
 /// H(v,x,y) called with v = [0, 1, 2]
 pub fn H2(x: f64, y: f64) -> f64 {
     let v = 2.;
-    let term0 = A2(x, y);
-    let term1 = U(60., x, y);
-    let term20 = B2(x, y);
-    let term21num = 2. - v;
+    let term0 = A2(x, y); // A is the flower field
+    let term1 = U(60., x, y); // U is the sky/cloud z-depth
+    let term20 = B2(x, y); // B is the clouds
+    let term21num = 2. - v; // sky/cloud tint hue: (2 - 2)/40 = 0/40 blue
     let term21den = 40.;
-    let term22num = 3. * v.pow2() - 3. * v + 14.;
+    let term22num = 3. * v.pow2() - 3. * v + 14.; // sky hue: (3*4 - 3*2 + 14)/20 = 20/20 = 100% blue
     let term22den = 20.;
     let term23 = V(20., x, y);
     let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
