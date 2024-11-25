@@ -1,5 +1,8 @@
 use std::{cell::Cell, collections::HashMap, thread::LocalKey};
 
+pub mod memo;
+pub mod winit_app;
+
 /// Computes e^n
 #[inline(always)]
 pub fn e(n: f64) -> f64 {

@@ -1,5 +1,10 @@
 Implementation of [Hamid Naderi Yeganeh](https://x.com/naderi_yeganeh)'s art in Rust.
 
+```sh
+cargo run
+cargo run --bin sunflower_field
+```
+
 Implemented:
 
 - [Sunflower Field](https://x.com/naderi_yeganeh/status/1858455441782534161) ([Workings](./workings/sunflower_field.png))

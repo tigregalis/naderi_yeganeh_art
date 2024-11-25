@@ -2,6 +2,7 @@
 name = "naderi_yeganeh_art"
 version = "0.1.0"
 edition = "2021"
+default-run = "naderi_yeganeh_art"
 
 [dependencies]
 rayon = "1.10.0"
