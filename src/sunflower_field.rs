@@ -8,6 +8,12 @@ use crate::*;
 use core::f64;
 use std::f64::consts::{FRAC_1_PI, PI};
 
+pub const FULL_M: usize = 2000;
+pub const FULL_N: usize = 1200;
+const HALF_M: f64 = (FULL_M / 2) as f64;
+const HALF_N: f64 = (FULL_N / 2) as f64;
+const HALF_N_PLUS_ONE: f64 = HALF_N + 1.;
+
 #[inline(always)]
 pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
     let result = rgb(

@@ -11,7 +11,7 @@ use winit::window::{Window, WindowAttributes, WindowId};
 
 /// Run a Winit application.
 #[allow(unused_mut)]
-pub(crate) fn run_app<E>(event_loop: EventLoop<E>, mut app: impl ApplicationHandler<E> + 'static) {
+pub fn run_app<E>(event_loop: EventLoop<E>, mut app: impl ApplicationHandler<E> + 'static) {
     #[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
     event_loop.run_app(&mut app).unwrap();
 
@@ -21,7 +21,7 @@ pub(crate) fn run_app<E>(event_loop: EventLoop<E>, mut app: impl ApplicationHand
 
 /// Create a window from a set of window attributes.
 #[allow(dead_code)]
-pub(crate) fn make_window(
+pub fn make_window(
     elwt: &ActiveEventLoop,
     f: impl FnOnce(WindowAttributes) -> WindowAttributes,
 ) -> Rc<Window> {
@@ -33,7 +33,7 @@ pub(crate) fn make_window(
 }
 
 /// Easily constructable winit application.
-pub(crate) struct WinitApp<T, Init, Handler, E> {
+pub struct WinitApp<T, Init, Handler, E> {
     /// Closure to initialize state.
     init: Init,
 
@@ -47,7 +47,7 @@ pub(crate) struct WinitApp<T, Init, Handler, E> {
 }
 
 /// Builder that makes it so we don't have to name `T`.
-pub(crate) struct WinitAppBuilder<T, Init> {
+pub struct WinitAppBuilder<T, Init> {
     /// Closure to initialize state.
     init: Init,
 
@@ -60,7 +60,7 @@ where
     Init: FnMut(&ActiveEventLoop) -> T,
 {
     /// Create with an "init" closure.
-    pub(crate) fn with_init(init: Init) -> Self {
+    pub fn with_init(init: Init) -> Self {
         Self {
             init,
             _marker: PhantomData,
@@ -68,7 +68,7 @@ where
     }
 
     /// Build a new application.
-    pub(crate) fn with_event_handler<F, E>(self, handler: F) -> WinitApp<T, Init, F, E>
+    pub fn with_event_handler<F, E>(self, handler: F) -> WinitApp<T, Init, F, E>
     where
         F: FnMut(&mut T, Event<E>, &ActiveEventLoop),
     {
@@ -82,7 +82,7 @@ where
     Handler: FnMut(&mut T, Event<E>, &ActiveEventLoop),
 {
     /// Create a new application.
-    pub(crate) fn new(init: Init, event: Handler) -> Self {
+    pub fn new(init: Init, event: Handler) -> Self {
         Self {
             init,
             event,
