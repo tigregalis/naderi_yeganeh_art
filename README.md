@@ -6,8 +6,8 @@ Implemented:
 
 Ideas:
 
-- [ ] Consider using `rayon` instead of `std::thread`
-- [ ] Consider using `winit` `UserEvent` instead of `std::mpsc::channel`
+- [x] Consider using `rayon` instead of `std::thread`
+- [x] ~~Consider using `winit` `UserEvent` instead of `std::mpsc::channel`~~
 - [ ] Consider porting to `rust-gpu`
 - [ ] Position of cursor gives you a popup of the history of that value (i.e. all the computations that led to the colour of that pixel)
 - [ ] Write a proc-macro to write more math-like expressions, which will auto-generate the functions (and the metadata needed for the history)
