@@ -133,7 +133,7 @@ pub fn A2(x: f64, y: f64) -> f64 {
     result
 }
 
-memo! {
+memo_many! {
     /// V(s,x,y) called with s = 1..=20
     pub fn V(s: f64, x: f64, y: f64) -> f64 {
         let result = product_with_key("V", 0, s, x, y, |u, x, y| {
@@ -148,7 +148,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W0(s: f64, x: f64, y: f64) -> f64 {
         let v = 0.;
@@ -195,7 +195,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W1(s: f64, x: f64, y: f64) -> f64 {
         let v = 1.;
@@ -242,7 +242,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// W(v,s,x,y) called with v = [0, 1, 2], s = 1..=60
     pub fn W2(s: f64, x: f64, y: f64) -> f64 {
         let v = 2.;
@@ -289,7 +289,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// the arccos(cos(x)) normalises x within 0 to Pi, i.e.
     /// - arccos(cos(x = 0 to Pi)) = 0 to Pi
     /// - arccos(cos(x = Pi to 2Pi)) = Pi to 0
@@ -306,7 +306,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// C(s,x,y) called with s = 0..=60
     pub fn C(s: f64, x: f64, y: f64) -> f64 {
         let term00 = -100.;
@@ -326,7 +326,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn L(s: f64, x: f64, y: f64) -> f64 {
         let term0num0 = 10. * P(s, x, y);
         let term0num = HALF_M * arccos(cos(term0num0));
@@ -338,7 +338,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn Q(s: f64, x: f64, y: f64) -> f64 {
         let term0num = 103.0f64.powf(s);
         let term0den = 100.0f64.powf(s);
@@ -353,7 +353,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn P(s: f64, x: f64, y: f64) -> f64 {
         let term0num = 103.0f64.powf(s);
         let term0den = 100.0f64.powf(s);
@@ -438,7 +438,7 @@ pub fn B2(x: f64, y: f64) -> f64 {
     result
 }
 
-memo! {
+memo_many! {
     /// U(s,x,y) called with s = 0..=60
     pub fn U(s: f64, x: f64, y: f64) -> f64 {
         let result = product_with_key("U", 0, s, x, y, |u, x, y| {
@@ -451,7 +451,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn E(x: f64, y: f64) -> f64 {
         let result = sum(1, 50, |s| {
             let term0 = 25.0f64.powf(s) / 26.0f64.powf(s);
@@ -462,7 +462,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// R(v,s,x,y) called with v = [3, 7]
     pub fn R3(s: f64, x: f64, y: f64) -> f64 {
         let v = 3.;
@@ -481,7 +481,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// R(v,s,x,y) called with v = [3, 7]
     pub fn R7(s: f64, x: f64, y: f64) -> f64 {
         let v = 7.;
@@ -500,7 +500,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// J(v,s,x,y) called with J = [0, 3]
     pub fn J0(s: f64, x: f64, y: f64) -> f64 {
         let v = 0.;
@@ -530,7 +530,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     /// J(v,s,x,y) called with J = [0, 3]
     pub fn J3(s: f64, x: f64, y: f64) -> f64 {
         let v = 3.;
@@ -560,7 +560,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn N(s: f64, x: f64, y: f64) -> f64 {
         let term00 = -400.;
         let term010 = 20. * P(s, x, y);
@@ -592,7 +592,7 @@ memo! {
     }
 }
 
-memo! {
+memo_many! {
     pub fn T(s: f64, x: f64, y: f64) -> f64 {
         let term00 = 10.0f64.powneg1() * 23.0f64.powf(s) * 20.0f64.powf(-s);
         let term01 = 1. + cos(10. * s);

@@ -1,6 +1,7 @@
 #![feature(fn_traits)]
 #![feature(unboxed_closures)]
 #![feature(tuple_trait)]
+#![feature(sort_floats)]
 
 pub mod art;
 

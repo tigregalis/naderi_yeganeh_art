@@ -71,6 +71,8 @@ pub fn run<Artwork: Art>() {
                         *pixel = softbuffer_color(rgb);
                     }
 
+                    // debug_print_stored_values();
+
                     if tx.send(PixelReady { index, pixels }).is_err() {
                         eprintln!("loop no longer exists");
                     }
@@ -115,7 +117,11 @@ pub fn run<Artwork: Art>() {
             println!("Finished in {elapsed:?}", elapsed = time_started.elapsed());
         }
 
-        if last_tick.elapsed() >= Duration::from_secs_f64(1. / 240.) {
+        let refresh_rate = window
+            .current_monitor()
+            .and_then(|mon| mon.refresh_rate_millihertz())
+            .unwrap_or(60000);
+        if last_tick.elapsed() >= Duration::from_secs_f64(1000. / refresh_rate as f64) {
             window.request_redraw();
             *last_tick = Instant::now();
         }
