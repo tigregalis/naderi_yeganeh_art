@@ -257,10 +257,12 @@ pub fn run<Artwork: Art>() {
 
                                 set_should_track(false);
 
+                                let mut result = Vec::new();
+                                let mut callstack = Vec::new();
                                 with_stack(|stack| {
-                                    let mut result = Vec::with_capacity(stack.len() / 2);
+                                    result.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
+                                    callstack.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
                                     let mut depth = 0usize;
-                                    let mut callstack = Vec::with_capacity(stack.len() / 2);
                                     for item in stack.drain(..) {
                                         match item {
                                             track::Item::Start(name) => {
@@ -314,7 +316,7 @@ pub fn run<Artwork: Art>() {
                                             }
                                         }
                                     }
-                                    for (_, line) in result {
+                                    for (_, line) in result.drain(..) {
                                         println!("  {line}");
                                     }
                                 });
