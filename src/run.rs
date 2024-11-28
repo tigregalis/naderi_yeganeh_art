@@ -1,4 +1,5 @@
 use std::{
+    fmt::Write as _,
     num::NonZeroU32,
     rc::Rc,
     sync::mpsc::{self, Receiver},
@@ -8,8 +9,9 @@ use std::{
 use crate::{utils::*, winit_app, Art};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use softbuffer::Surface;
+use track::{set_should_track, with_stack};
 use winit::{
-    event::{Event, KeyEvent, WindowEvent},
+    event::{ElementState, Event, KeyEvent, MouseButton, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard::{Key, ModifiersState, NamedKey},
     window::Window,
@@ -24,6 +26,7 @@ struct State {
     time_started: Instant,
     finished: bool,
     drawn: usize,
+    mouse: Mouse,
 }
 
 /// A [`winit::window::Window`] paired with a [`softbuffer::Surface`]
@@ -47,6 +50,22 @@ const BATCH_SIZE: usize = 32;
 struct PixelReady {
     index: usize,
     pixels: [u32; BATCH_SIZE],
+}
+
+struct Mouse {
+    x: f64,
+    y: f64,
+    left_state: ElementState,
+}
+
+impl Default for Mouse {
+    fn default() -> Self {
+        Self {
+            x: Default::default(),
+            y: Default::default(),
+            left_state: ElementState::Released,
+        }
+    }
 }
 
 pub fn run<Artwork: Art>() {
@@ -88,6 +107,7 @@ pub fn run<Artwork: Art>() {
             time_started: Instant::now(),
             finished: false,
             drawn: 0,
+            mouse: Default::default(),
         }
     })
     .with_event_handler(|state, event, elwt| {
@@ -102,6 +122,7 @@ pub fn run<Artwork: Art>() {
             time_started,
             finished,
             drawn,
+            mouse,
         } = state;
 
         let image_len = image.len();
@@ -166,8 +187,104 @@ pub fn run<Artwork: Art>() {
                         }
                     };
                 }
-                WindowEvent::CursorMoved { .. } => {}
-                WindowEvent::MouseInput { .. } => {}
+                WindowEvent::CursorMoved {
+                    device_id: _,
+                    position,
+                } => {
+                    mouse.x = position.x;
+                    mouse.y = position.y;
+                }
+                WindowEvent::MouseInput {
+                    device_id: _,
+                    state,
+                    button,
+                } => {
+                    if button == MouseButton::Left {
+                        let x = mouse.x as usize;
+                        let y = mouse.y as usize;
+                        if (mouse.left_state, state)
+                            == (ElementState::Pressed, ElementState::Released)
+                            && x < Artwork::FULL_M
+                            && y < Artwork::FULL_N
+                        {
+                            std::thread::spawn(move || {
+                                set_should_track(true);
+
+                                let m = (x + 1) as f64;
+                                let n = (y + 1) as f64;
+                                let rgb = Artwork::draw(m, n);
+                                println!("@ m = {m}, n = {n}");
+
+                                set_should_track(false);
+
+                                with_stack(|stack| {
+                                    let mut result = Vec::with_capacity(stack.len() / 2);
+                                    let mut depth = 0usize;
+                                    let mut callstack = Vec::with_capacity(stack.len() / 2);
+                                    for item in stack.drain(..) {
+                                        match item {
+                                            track::Item::Start(name) => {
+                                                result.push((depth, "  ".repeat(depth)));
+                                                callstack.push(result.len() - 1);
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    "{name}( "
+                                                )
+                                                .unwrap();
+                                                depth += 1;
+                                            }
+                                            track::Item::ArgUsize(arg, val) => {
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    "{arg} = {val}, "
+                                                )
+                                                .unwrap();
+                                            }
+                                            track::Item::ArgF64(arg, val) => {
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    "{arg} = {val:.3}, "
+                                                )
+                                                .unwrap();
+                                            }
+                                            track::Item::FinishArg => {
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    ")"
+                                                )
+                                                .unwrap();
+                                            }
+                                            track::Item::FinishU8U8U8(r, g, b) => {
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    " = ({r},{g},{b})"
+                                                )
+                                                .unwrap();
+                                                callstack.pop();
+                                                depth -= 1;
+                                            }
+                                            track::Item::FinishF64(output) => {
+                                                write!(
+                                                    &mut result[*callstack.last().unwrap()].1,
+                                                    " = {output:.3}"
+                                                )
+                                                .unwrap();
+                                                callstack.pop();
+                                                depth -= 1;
+                                            }
+                                        }
+                                    }
+                                    for (_, line) in result {
+                                        println!("  {line}");
+                                    }
+                                });
+
+                                println!("=> rgb({},{},{})", rgb.0, rgb.1, rgb.2);
+                            });
+                        }
+                        mouse.left_state = state;
+                    }
+                }
                 WindowEvent::MouseWheel { .. } => {}
                 WindowEvent::RedrawRequested => {
                     let width = surface.window().inner_size().width as usize;

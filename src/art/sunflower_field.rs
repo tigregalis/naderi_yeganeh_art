@@ -36,45 +36,53 @@ pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
     result
 }
 
-#[inline(always)]
-pub fn rgb(r: f64, g: f64, b: f64) -> (u8, u8, u8) {
-    let result = (r.round() as u8, g.round() as u8, b.round() as u8);
-    result
+track! {
+    #[inline(always)]
+    pub fn rgb(r: f64, g: f64, b: f64) -> (u8, u8, u8) {
+        let result = (r.round() as u8, g.round() as u8, b.round() as u8);
+        result
+    }
 }
 
-pub fn F(x: f64) -> f64 {
-    let term0 = 255. * e(-e(-HALF_M * x));
-    let term1 = abs(x).powf(e(-e(HALF_M * (x - 1.))));
-    let result = term0 * term1;
-    result
+track! {
+    pub fn F(x: f64) -> f64 {
+        let term0 = 255. * e(-e(-HALF_M * x));
+        let term1 = abs(x).powf(e(-e(HALF_M * (x - 1.))));
+        let result = term0 * term1;
+        result
+    }
 }
 
-/// H(v,x,y) called with v = [0, 1, 2]
-pub fn H(v: usize, x: f64, y: f64) -> f64 {
-    let v_ = v as f64;
-    let term0 = A(v, x, y); // A is the flower field
-    let term1 = U(60, x, y); // U is the sky/cloud z-depth
-    let term20 = B(v, x, y); // B is the clouds
-    let term21num = 2. - v_; // sky/cloud tint hue: (2 - 0)/40 = 2/40 red
-    let term21den = 40.;
-    let term22num = 3. * v_.pow2() - 3. * v_ + 14.; // sky hue: (3*0 - 3*0 + 14)/20 = 14/20 = 70% red
-    let term22den = 20.;
-    let term23 = V(20, x, y);
-    let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
-    let term24 = e(-e(term240));
-    let term2 = term20 + term21num / term21den + term22num / term22den * term23 * term24;
-    let result = term0 + term1 * term2;
-    result
+track! {
+    /// H(v,x,y) called with v = [0, 1, 2]
+    pub fn H(v: usize, x: f64, y: f64) -> f64 {
+        let v_ = v as f64;
+        let term0 = A(v, x, y); // A is the flower field
+        let term1 = U(60, x, y); // U is the sky/cloud z-depth
+        let term20 = B(v, x, y); // B is the clouds
+        let term21num = 2. - v_; // sky/cloud tint hue: (2 - 0)/40 = 2/40 red
+        let term21den = 40.;
+        let term22num = 3. * v_.pow2() - 3. * v_ + 14.; // sky hue: (3*0 - 3*0 + 14)/20 = 14/20 = 70% red
+        let term22den = 20.;
+        let term23 = V(20, x, y);
+        let term240 = -100. * y - 3. * (x - 1. / 2.).pow2() + 14.;
+        let term24 = e(-e(term240));
+        let term2 = term20 + term21num / term21den + term22num / term22den * term23 * term24;
+        let result = term0 + term1 * term2;
+        result
+    }
 }
 
-/// A(v,x,y) called with v = [0, 1, 2]
-pub fn A(v: usize, x: f64, y: f64) -> f64 {
-    let result = sum(1, 60, |s| {
-        let term0 = U(s - 1, x, y);
-        let term1 = W(v, s, x, y);
-        term0 * term1
-    });
-    result
+track! {
+    /// A(v,x,y) called with v = [0, 1, 2]
+    pub fn A(v: usize, x: f64, y: f64) -> f64 {
+        let result = sum(1, 60, |s| {
+            let term0 = U(s - 1, x, y);
+            let term1 = W(v, s, x, y);
+            term0 * term1
+        });
+        result
+    }
 }
 
 memo_many! {

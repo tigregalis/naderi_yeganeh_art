@@ -38,51 +38,57 @@ pub fn draw(m: f64, n: f64) -> (u8, u8, u8) {
     result
 }
 
-#[inline(always)]
-pub fn rgb(r: f64, g: f64, b: f64) -> (u8, u8, u8) {
-    let result = (r.round() as u8, g.round() as u8, b.round() as u8);
-    result
+track! {
+    #[inline(always)]
+    pub fn rgb(r: f64, g: f64, b: f64) -> (u8, u8, u8) {
+        let result = (r.round() as u8, g.round() as u8, b.round() as u8);
+        result
+    }
 }
 
-pub fn F(x: f64) -> f64 {
-    let term0 = 255. * e(-e(-HALF_M * x));
-    let term1 = abs(x).powf(e(-e(HALF_M * (x - 1.))));
-    let result = term0 * term1;
-    result
+track! {
+    pub fn F(x: f64) -> f64 {
+        let term0 = 255. * e(-e(-HALF_M * x));
+        let term1 = abs(x).powf(e(-e(HALF_M * (x - 1.))));
+        let result = term0 * term1;
+        result
+    }
 }
 
-/// H(v,x,y) called with v = [0, 1, 2]
-pub fn H(v: usize, x: f64, y: f64) -> f64 {
-    let v_ = v as f64;
-    let result = sum(1, 30, |s| {
-        let term0 = product_with_key("H", 0, s - 1, x, y, |r, x, y| {
-            let r_ = r as f64;
+track! {
+    /// H(v,x,y) called with v = [0, 1, 2]
+    pub fn H(v: usize, x: f64, y: f64) -> f64 {
+        let v_ = v as f64;
+        let result = sum(1, 30, |s| {
+            let term0 = product_with_key("H", 0, s - 1, x, y, |r, x, y| {
+                let r_ = r as f64;
 
-            let term010 = 1. - A(HALF_M_INT, r, x, y);
-            let term0110 = e(-e(-HALF_M * (r_ - 1. / 2.)));
-            let term0111 = U(r, x, y);
-            let term011 = 1. - term0110 * term0111;
-            let term0120 = 5. / 4.;
-            let term0121 = A(4, r, x, y);
-            let term012 = 1. - term0120 * term0121;
-            let term01 = term010 * term011 * term012;
-            term01
+                let term010 = 1. - A(HALF_M_INT, r, x, y);
+                let term0110 = e(-e(-HALF_M * (r_ - 1. / 2.)));
+                let term0111 = U(r, x, y);
+                let term011 = 1. - term0110 * term0111;
+                let term0120 = 5. / 4.;
+                let term0121 = A(4, r, x, y);
+                let term012 = 1. - term0120 * term0121;
+                let term01 = term010 * term011 * term012;
+                term01
+            });
+            let term10000 = v_ - 1.;
+            let term1000 = 3. * term10000.pow2();
+            let term1001 = W(x, y);
+            let term100 = 5. - term1000 + term1001;
+            let term10 = term100 / 10.;
+            let term110 = 71. / 10. - 10. * P(s, x, y);
+            let term11 = e(-e(-abs(term110)));
+            let term12 = U(s, x, y);
+            let term13 = A(HALF_M_INT, s, x, y);
+            let term14 = 1. - U(s, x, y);
+            let term15 = L(v, s, x, y);
+            let term1 = term10 * term11 * term12 + term13 * term14 * term15;
+            term0 * term1
         });
-        let term10000 = v_ - 1.;
-        let term1000 = 3. * term10000.pow2();
-        let term1001 = W(x, y);
-        let term100 = 5. - term1000 + term1001;
-        let term10 = term100 / 10.;
-        let term110 = 71. / 10. - 10. * P(s, x, y);
-        let term11 = e(-e(-abs(term110)));
-        let term12 = U(s, x, y);
-        let term13 = A(HALF_M_INT, s, x, y);
-        let term14 = 1. - U(s, x, y);
-        let term15 = L(v, s, x, y);
-        let term1 = term10 * term11 * term12 + term13 * term14 * term15;
-        term0 * term1
-    });
-    result
+        result
+    }
 }
 
 memo_many! {
