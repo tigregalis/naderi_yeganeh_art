@@ -338,18 +338,18 @@ pub fn run<Artwork: Art>() {
                 } => {
                     let (offset_x, offset_y) = match delta {
                         winit::event::MouseScrollDelta::LineDelta(x, y) => {
-                            (x as i32 * 20, y as i32 * 20)
+                            (x as i32 * 100, y as i32 * 100)
                         }
                         winit::event::MouseScrollDelta::PixelDelta(pos) => {
                             (pos.x as i32, pos.y as i32)
                         }
                     };
-                    *scroll_x += if key_modifiers.control_key() {
+                    *scroll_x += if key_modifiers.shift_key() {
                         offset_y
                     } else {
                         offset_x
                     };
-                    *scroll_y += if key_modifiers.control_key() {
+                    *scroll_y += if key_modifiers.shift_key() {
                         offset_x
                     } else {
                         offset_y
