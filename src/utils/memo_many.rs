@@ -123,7 +123,7 @@ macro_rules! memo_many {
             }
 
             with_local_cell(&INNER, |f| {
-                let f = f.as_mut().unwrap();
+                let f = f.as_mut().expect("function should exist; the thread may have crashed");
                 f($($arg),*)
             })
         }

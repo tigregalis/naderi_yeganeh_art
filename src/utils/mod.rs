@@ -4,8 +4,8 @@ use std::{
     thread::LocalKey,
 };
 
-pub mod memo;
 pub mod memo_many;
+pub mod memo_once;
 pub mod winit_app;
 
 #[inline(always)]
@@ -179,8 +179,10 @@ pub fn sum_with_key(
 }
 
 #[inline(always)]
-pub fn sum(start: impl Number, end: impl Number, expression: impl Fn(f64) -> f64) -> f64 {
-    range(start, end).map(expression).sum::<f64>()
+pub fn sum(start: impl Number, end: impl Number, expression: impl Fn(usize) -> f64) -> f64 {
+    (start.into_usize()..=end.into_usize())
+        .map(expression)
+        .sum::<f64>()
 }
 
 #[inline(always)]
@@ -190,7 +192,7 @@ pub fn product_with_key(
     end: impl Number,
     x: f64,
     y: f64,
-    expression: impl Fn(f64, f64, f64) -> f64,
+    expression: impl Fn(usize, f64, f64) -> f64,
 ) -> f64 {
     thread_local! {
         static ARGS: Cell<Option<(f64, f64)>> = Default::default();
@@ -211,10 +213,10 @@ pub fn product_with_key(
             .entry(key)
             .and_modify(|v| {
                 for s in v.len()..=end {
-                    v.push(expression(s as f64, x, y));
+                    v.push(expression(s, x, y));
                 }
             })
-            .or_insert_with(|| range(0, end).map(|s| expression(s, x, y)).collect());
+            .or_insert_with(|| (0..=end).map(|s| expression(s, x, y)).collect());
 
         v[start..=end].iter().product::<f64>()
     });

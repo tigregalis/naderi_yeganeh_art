@@ -55,10 +55,8 @@ pub fn F(x: f64) -> f64 {
 pub fn H(v: usize, x: f64, y: f64) -> f64 {
     let v_ = v as f64;
     let result = sum(1, 30, |s| {
-        let s = s as usize;
         let term0 = product_with_key("H", 0, s - 1, x, y, |r, x, y| {
-            let r_ = r;
-            let r = r as usize;
+            let r_ = r as f64;
 
             let term010 = 1. - A(HALF_M_INT, r, x, y);
             let term0110 = e(-e(-HALF_M * (r_ - 1. / 2.)));
@@ -305,13 +303,14 @@ memo_many! {
 memo_many! {
     pub fn W(x: f64, y: f64) -> f64 {
         let result = sum(1, 40, |s| {
-            let term000 = 28.0f64.powf(s) * 25.0f64.powf(-s);
-            let term001 = cos(2. * s) * x + sin(2. * s) * y;
-            let term002 = 2. * sin(5. * s);
+            let s_ = s as f64;
+            let term000 = 28.0f64.powi(s as i32) * 25.0f64.powi(-(s as i32));
+            let term001 = cos(2. * s_) * x + sin(2. * s_) * y;
+            let term002 = 2. * sin(5. * s_);
             let term00 = term000 * term001 + term002;
-            let term010 = 28.0f64.powf(s) * 25.0f64.powf(-s);
-            let term011 = cos(2. * s) * y - sin(2. * s) * x;
-            let term012 = 2. * sin(6. * s);
+            let term010 = 28.0f64.powi(s as i32) * 25.0f64.powi(-(s as i32));
+            let term011 = cos(2. * s_) * y - sin(2. * s_) * x;
+            let term012 = 2. * sin(6. * s_);
             let term01 = term010 * term011 + term012;
             let term02 = 97. / 100.;
             let term0 = cos2(term00) * cos2(term01) - term02;

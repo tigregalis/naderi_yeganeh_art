@@ -58,7 +58,7 @@ where
 /// Keeps exactly one entry only.
 /// Resets on any change in arguments.
 #[macro_export]
-macro_rules! memo {
+macro_rules! memo_once {
     ( $(#[$attr:meta])* $vis:vis fn $name:ident ( $($arg:ident : $argty:ty),* ) -> $outty:ty { $($body:tt)* } ) => {
         #[allow(non_snake_case)]
         $(#[$attr])* $vis fn $name ( $($arg:$argty),* ) -> $outty {
@@ -72,7 +72,7 @@ macro_rules! memo {
             }
 
             with_local_cell(&INNER, |f| {
-                let f = f.as_mut().unwrap();
+                let f = f.as_mut().expect("function should exist; the thread may have crashed");
                 f($($arg),*)
             })
         }
