@@ -182,11 +182,22 @@ pub fn run<Artwork: Art>() {
 
                     if state.is_pressed() {
                         match logical_key {
-                            Key::Named(NamedKey::ArrowLeft) => {}
-                            Key::Named(NamedKey::ArrowRight) => {}
-                            Key::Named(NamedKey::ArrowUp) => {}
-                            Key::Named(NamedKey::ArrowDown) => {}
-                            Key::Named(NamedKey::Escape) => {}
+                            Key::Named(NamedKey::ArrowLeft) => {
+                                *scroll_x -= 20;
+                            }
+                            Key::Named(NamedKey::ArrowRight) => {
+                                *scroll_x += 20;
+                            }
+                            Key::Named(NamedKey::ArrowUp) => {
+                                *scroll_y -= 20;
+                            }
+                            Key::Named(NamedKey::ArrowDown) => {
+                                *scroll_y += 20;
+                            }
+                            Key::Named(NamedKey::Escape) => {
+                                *scroll_x = 0;
+                                *scroll_y = 0;
+                            }
                             Key::Named(NamedKey::Enter) => {}
                             Key::Named(NamedKey::Space) => {}
                             Key::Named(key) => {
