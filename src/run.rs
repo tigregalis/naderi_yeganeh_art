@@ -247,14 +247,14 @@ pub fn run<Artwork: Art>() {
                                                 )
                                                 .unwrap();
                                             }
-                                            track::Item::FinishArg => {
+                                            track::Item::ArgEnd => {
                                                 write!(
                                                     &mut result[*callstack.last().unwrap()].1,
                                                     ")"
                                                 )
                                                 .unwrap();
                                             }
-                                            track::Item::FinishU8U8U8(r, g, b) => {
+                                            track::Item::FinishRgb(r, g, b) => {
                                                 write!(
                                                     &mut result[*callstack.last().unwrap()].1,
                                                     " = ({r},{g},{b})"

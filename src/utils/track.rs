@@ -6,9 +6,11 @@ pub enum Item {
     ArgUsize(&'static str, usize),
     /// Name of argument and its value `x` in `F(v,x)` where` `x: f64`, e.g. `Item::ArgF64("x", 0.5)`
     ArgF64(&'static str, f64),
-    FinishArg,
-    FinishU8U8U8(u8, u8, u8),
-    /// Result `this` in `let this = F(v, x);`, e.g. `Item::Finish(0.9)`
+    /// End of argument list
+    ArgEnd,
+    /// Result `this` in `let this = F(v, x);`, e.g. `Item::FinishF64(0.9)`
+    FinishRgb(u8, u8, u8),
+    /// Result `this` in `let this = F(v, x);`, e.g. `Item::FinishF64(0.9)`
     FinishF64(f64),
 }
 
@@ -26,7 +28,7 @@ impl From<(&'static str, usize)> for Item {
 
 impl From<(u8, u8, u8)> for Item {
     fn from((r, g, b): (u8, u8, u8)) -> Self {
-        Self::FinishU8U8U8(r, g, b)
+        Self::FinishRgb(r, g, b)
     }
 }
 
@@ -41,8 +43,8 @@ use std::cell::Cell;
 use super::with_local_cell;
 
 thread_local! {
-    pub static STACK: Cell<Vec<Item>> = Cell::new(Vec::with_capacity(400_000));
-    pub static SHOULD_TRACK: Cell<bool> = const { Cell::new(false) };
+    static STACK: Cell<Vec<Item>> = Cell::new(Vec::with_capacity(400_000));
+    static SHOULD_TRACK: Cell<bool> = const { Cell::new(false) };
 }
 
 #[macro_export]
@@ -60,7 +62,7 @@ macro_rules! track {
                 push_stack(Item::Start(stringify!($name)));
                 // Push arguments
                 $( push_stack((stringify!($arg), $arg).into()); )*
-                push_stack(Item::FinishArg);
+                push_stack(Item::ArgEnd);
                 // Call function
                 let output = inner ( $($arg),* );
                 // Push output (finish)
