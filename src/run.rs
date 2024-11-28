@@ -27,6 +27,8 @@ struct State {
     finished: bool,
     drawn: usize,
     mouse: Mouse,
+    scroll_x: i32,
+    scroll_y: i32,
 }
 
 /// A [`winit::window::Window`] paired with a [`softbuffer::Surface`]
@@ -53,17 +55,27 @@ struct PixelReady {
 }
 
 struct Mouse {
+    prev_x: f64,
+    prev_y: f64,
     x: f64,
     y: f64,
+    middle_start_x: Option<f64>,
+    middle_start_y: Option<f64>,
     left_state: ElementState,
+    middle_state: ElementState,
 }
 
 impl Default for Mouse {
     fn default() -> Self {
         Self {
+            prev_x: Default::default(),
+            prev_y: Default::default(),
             x: Default::default(),
             y: Default::default(),
+            middle_start_x: Default::default(),
+            middle_start_y: Default::default(),
             left_state: ElementState::Released,
+            middle_state: ElementState::Released,
         }
     }
 }
@@ -108,6 +120,8 @@ pub fn run<Artwork: Art>() {
             finished: false,
             drawn: 0,
             mouse: Default::default(),
+            scroll_x: 0,
+            scroll_y: 0,
         }
     })
     .with_event_handler(|state, event, elwt| {
@@ -123,6 +137,8 @@ pub fn run<Artwork: Art>() {
             finished,
             drawn,
             mouse,
+            scroll_x,
+            scroll_y,
         } = state;
 
         let image_len = image.len();
@@ -191,8 +207,19 @@ pub fn run<Artwork: Art>() {
                     device_id: _,
                     position,
                 } => {
+                    mouse.prev_x = mouse.x;
+                    mouse.prev_y = mouse.y;
+
                     mouse.x = position.x;
                     mouse.y = position.y;
+
+                    let dx = mouse.x - mouse.prev_x;
+                    let dy = mouse.y - mouse.prev_y;
+
+                    if mouse.middle_state == ElementState::Pressed {
+                        *scroll_x += dx as i32;
+                        *scroll_y += dy as i32;
+                    }
                 }
                 WindowEvent::MouseInput {
                     device_id: _,
@@ -200,12 +227,14 @@ pub fn run<Artwork: Art>() {
                     button,
                 } => {
                     if button == MouseButton::Left {
-                        let x = mouse.x as usize;
-                        let y = mouse.y as usize;
+                        let x = mouse.x as isize - *scroll_x as isize;
+                        let y = mouse.y as isize - *scroll_y as isize;
                         if (mouse.left_state, state)
                             == (ElementState::Pressed, ElementState::Released)
-                            && x < Artwork::FULL_M
-                            && y < Artwork::FULL_N
+                            && x >= 0
+                            && y >= 0
+                            && x < Artwork::FULL_M as isize
+                            && y < Artwork::FULL_N as isize
                         {
                             std::thread::spawn(move || {
                                 set_should_track(true);
@@ -283,34 +312,88 @@ pub fn run<Artwork: Art>() {
                             });
                         }
                         mouse.left_state = state;
+                    } else if button == MouseButton::Middle {
+                        match (mouse.middle_state, state) {
+                            (ElementState::Released, ElementState::Pressed) => {
+                                mouse.middle_start_x = Some(mouse.x);
+                                mouse.middle_start_y = Some(mouse.y);
+                            }
+                            (ElementState::Pressed, ElementState::Released) => {
+                                mouse.middle_start_x = None;
+                                mouse.middle_start_y = None;
+                            }
+                            _ => unreachable!(),
+                        }
+
+                        mouse.middle_state = state;
+                    } else if button == MouseButton::Right && state == ElementState::Pressed {
+                        *scroll_x = 0;
+                        *scroll_y = 0;
                     }
                 }
-                WindowEvent::MouseWheel { .. } => {}
+                WindowEvent::MouseWheel {
+                    device_id: _,
+                    delta,
+                    phase: _,
+                } => {
+                    let (offset_x, offset_y) = match delta {
+                        winit::event::MouseScrollDelta::LineDelta(x, y) => {
+                            (x as i32 * 20, y as i32 * 20)
+                        }
+                        winit::event::MouseScrollDelta::PixelDelta(pos) => {
+                            (pos.x as i32, pos.y as i32)
+                        }
+                    };
+                    *scroll_x += if key_modifiers.control_key() {
+                        offset_y
+                    } else {
+                        offset_x
+                    };
+                    *scroll_y += if key_modifiers.control_key() {
+                        offset_x
+                    } else {
+                        offset_y
+                    };
+                }
                 WindowEvent::RedrawRequested => {
-                    let width = surface.window().inner_size().width as usize;
-                    let height = surface.window().inner_size().height as usize;
+                    let width = surface.window().inner_size().width as isize;
+                    let height = surface.window().inner_size().height as isize;
                     let mut surface_buffer = surface.buffer_mut().unwrap();
 
                     if width > 0 && height > 0 {
-                        let target_width = width.min(Artwork::FULL_M);
-                        let target_height = height.min(Artwork::FULL_N);
-                        let src_buffer = image.as_mut_slice();
+                        let start_x = *scroll_x as isize;
+                        let skip_dest_x = start_x.max(0).min(width) as usize;
+                        let skip_src_x = (-start_x).max(0).min(Artwork::FULL_M as isize) as usize;
+                        let take_x = (width - skip_dest_x as isize)
+                            .min(Artwork::FULL_M as isize - skip_src_x as isize)
+                            .max(0) as usize;
+
+                        let start_y = *scroll_y as isize;
+                        let skip_dest_y = start_y.max(0).min(height) as usize;
+                        let skip_src_y = (-start_y).max(0).min(Artwork::FULL_N as isize) as usize;
+                        let take_y = (height - skip_dest_y as isize)
+                            .min(Artwork::FULL_N as isize - skip_src_y as isize)
+                            .max(0) as usize;
+
+                        let src_buffer = image.as_slice();
                         let src_lines = src_buffer
                             .chunks(Artwork::FULL_M)
-                            .map(|line| &line[0..target_width])
-                            .take(target_height);
+                            .skip(skip_src_y)
+                            .map(|line| &line[skip_src_x..(skip_src_x + take_x)])
+                            .take(take_y);
                         let dest_buffer = surface_buffer.as_mut();
                         dest_buffer.fill(0);
                         let dest_lines = dest_buffer
-                            .chunks_mut(width)
-                            .map(|line| &mut line[0..target_width])
-                            .take(target_height);
+                            .chunks_mut(width as usize)
+                            .map(|line| &mut line[skip_dest_x..(skip_dest_x + take_x)])
+                            .skip(skip_dest_y)
+                            .take(take_y);
                         for (src, dest) in src_lines.zip(dest_lines) {
                             dest.copy_from_slice(src);
                         }
                     }
 
-                    surface.buffer_mut().unwrap().present().unwrap();
+                    surface_buffer.present().unwrap();
                 }
                 WindowEvent::CloseRequested => {
                     elwt.exit();
