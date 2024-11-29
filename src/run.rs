@@ -59,8 +59,6 @@ struct Mouse {
     prev_y: f64,
     x: f64,
     y: f64,
-    middle_start_x: Option<f64>,
-    middle_start_y: Option<f64>,
     left_state: ElementState,
     middle_state: ElementState,
 }
@@ -72,8 +70,6 @@ impl Default for Mouse {
             prev_y: Default::default(),
             x: Default::default(),
             y: Default::default(),
-            middle_start_x: Default::default(),
-            middle_start_y: Default::default(),
             left_state: ElementState::Released,
             middle_state: ElementState::Released,
         }
@@ -319,17 +315,6 @@ pub fn run<Artwork: Art>() {
 
                         mouse.left_state = state;
                     } else if button == MouseButton::Middle {
-                        match state {
-                            ElementState::Pressed => {
-                                mouse.middle_start_x = Some(mouse.x);
-                                mouse.middle_start_y = Some(mouse.y);
-                            }
-                            ElementState::Released => {
-                                mouse.middle_start_x = None;
-                                mouse.middle_start_y = None;
-                            }
-                        }
-
                         mouse.middle_state = state;
                     } else if button == MouseButton::Right && state == ElementState::Pressed {
                         *scroll_x = 0;
