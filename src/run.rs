@@ -240,13 +240,28 @@ pub fn run<Artwork: Art>() {
                     if button == MouseButton::Left {
                         let x = mouse.x as isize - *scroll_x as isize;
                         let y = mouse.y as isize - *scroll_y as isize;
-                        if (mouse.left_state, state)
-                            == (ElementState::Pressed, ElementState::Released)
+                        if state == ElementState::Released
                             && x >= 0
                             && y >= 0
                             && x < Artwork::FULL_M as isize
                             && y < Artwork::FULL_N as isize
                         {
+                            struct Temp {
+                                lines: Vec<(usize, String)>,
+                                callstack: Vec<usize>,
+                            }
+
+                            impl Temp {
+                                fn current(&mut self) -> &'_ mut String {
+                                    &mut self.lines[*self.callstack.last().unwrap()].1
+                                }
+                            }
+
+                            let mut tmp = Temp {
+                                lines: Vec::new(),
+                                callstack: Vec::new(),
+                            };
+
                             std::thread::spawn(move || {
                                 set_should_track(true);
 
@@ -256,86 +271,63 @@ pub fn run<Artwork: Art>() {
                                 println!("@ m = {m}, n = {n}");
 
                                 set_should_track(false);
-
-                                let mut result = Vec::new();
-                                let mut callstack = Vec::new();
-                                with_stack(|stack| {
-                                    result.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
-                                    callstack.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
+                                with_stack(|stack| -> Result<(), std::fmt::Error> {
+                                    tmp.lines.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
+                                    tmp.callstack.reserve(stack.len() / 4); // Minimum items is: Start, Arg* (since always >= 1 arg), ArgEnd, Finish*
                                     let mut depth = 0usize;
                                     for item in stack.drain(..) {
                                         match item {
                                             track::Item::Start(name) => {
-                                                result.push((depth, "  ".repeat(depth)));
-                                                callstack.push(result.len() - 1);
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    "{name}( "
-                                                )
-                                                .unwrap();
+                                                tmp.lines.push((depth, "  ".repeat(depth)));
+                                                tmp.callstack.push(tmp.lines.len() - 1);
+                                                write!(tmp.current(), "{name}(")?;
                                                 depth += 1;
                                             }
                                             track::Item::ArgUsize(arg, val) => {
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    "{arg} = {val}, "
-                                                )
-                                                .unwrap();
+                                                write!(tmp.current(), "{arg} = {val}, ")?;
                                             }
                                             track::Item::ArgF64(arg, val) => {
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    "{arg} = {val:.3}, "
-                                                )
-                                                .unwrap();
+                                                write!(tmp.current(), "{arg} = {val:.3}, ")?;
                                             }
                                             track::Item::ArgEnd => {
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    ")"
-                                                )
-                                                .unwrap();
+                                                tmp.current().pop(); // remove extra " "
+                                                tmp.current().pop(); // remove extra ","
+                                                write!(tmp.current(), ")")?;
                                             }
                                             track::Item::FinishRgb(r, g, b) => {
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    " = ({r},{g},{b})"
-                                                )
-                                                .unwrap();
-                                                callstack.pop();
+                                                write!(tmp.current(), " = ({r}, {g}, {b})")?;
+                                                tmp.callstack.pop();
                                                 depth -= 1;
                                             }
                                             track::Item::FinishF64(output) => {
-                                                write!(
-                                                    &mut result[*callstack.last().unwrap()].1,
-                                                    " = {output:.3}"
-                                                )
-                                                .unwrap();
-                                                callstack.pop();
+                                                write!(tmp.current(), " = {output:.3}")?;
+                                                tmp.callstack.pop();
                                                 depth -= 1;
                                             }
                                         }
                                     }
-                                    for (_, line) in result.drain(..) {
+                                    for (_, line) in tmp.lines.drain(..) {
                                         println!("  {line}");
                                     }
-                                });
+                                    Ok(())
+                                })
+                                .expect("Writing to a string should have succeeded");
 
-                                println!("=> rgb({},{},{})", rgb.0, rgb.1, rgb.2);
+                                println!("=> rgb({}, {}, {})", rgb.0, rgb.1, rgb.2);
                             });
                         }
+
                         mouse.left_state = state;
                     } else if button == MouseButton::Middle {
-                        match (mouse.middle_state, state) {
-                            (ElementState::Released, ElementState::Pressed) => {
+                        match state {
+                            ElementState::Pressed => {
                                 mouse.middle_start_x = Some(mouse.x);
                                 mouse.middle_start_y = Some(mouse.y);
                             }
-                            (ElementState::Pressed, ElementState::Released) => {
+                            ElementState::Released => {
                                 mouse.middle_start_x = None;
                                 mouse.middle_start_y = None;
                             }
-                            _ => unreachable!(),
                         }
 
                         mouse.middle_state = state;
